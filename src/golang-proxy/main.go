@@ -15,7 +15,7 @@ import (
 var redirectToApache atomic.Value
 
 func configUpdater(){
-	isFirst := false
+	isFirst := true
 	for {
 		b, err := ioutil.ReadFile("./config.json")
 		if err != nil {
@@ -28,6 +28,7 @@ func configUpdater(){
 			}else{
 				redirectToApache.Store(value)
 				if isFirst {
+					isFirst = false
 					log.Println("Loaded config")
 				}
 			}
