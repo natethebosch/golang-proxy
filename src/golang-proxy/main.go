@@ -11,15 +11,15 @@ import (
 	"encoding/json"
 	"strconv"
 	"bytes"
+	"path"
 )
 
 var redirectToApache atomic.Value
 
 func configUpdater(){
-	isFirst := true
 	lastValue := []byte{}
 	for {
-		b, err := ioutil.ReadFile("./config.json")
+		b, err := ioutil.ReadFile(path.Join("./config.json"))
 		if err != nil {
 			log.Println(err)
 		} else {
@@ -27,7 +27,7 @@ func configUpdater(){
 
 			if !bytes.Equal(lastValue, b) {
 				lastValue = b
-				log.Println("reloaded config")
+				log.Println("Loaded config")
 			}
 
 			err := json.Unmarshal(b, &value)
@@ -35,11 +35,6 @@ func configUpdater(){
 				log.Println(err)
 			}else{
 				redirectToApache.Store(value)
-
-				if isFirst {
-					isFirst = false
-					log.Println("Loaded config")
-				}
 			}
 		}
 
