@@ -10,23 +10,33 @@ import (
 	"log"
 	"encoding/json"
 	"strconv"
+	"bytes"
+	"strings"
 )
 
 var redirectToApache atomic.Value
 
 func configUpdater(){
 	isFirst := true
+	lastValue := []byte{}
 	for {
 		b, err := ioutil.ReadFile("./config.json")
 		if err != nil {
 			log.Println(err)
 		} else {
 			value := make(map[string]int)
+
+			if !bytes.Equal(lastValue, value) {
+				lastValue = value
+				log.Println("reloaded config")
+			}
+
 			err := json.Unmarshal(b, &value)
 			if err != nil {
 				log.Println(err)
 			}else{
 				redirectToApache.Store(value)
+
 				if isFirst {
 					isFirst = false
 					log.Println("Loaded config")
@@ -41,7 +51,7 @@ func configUpdater(){
 func director(r *http.Request) {
 	v := redirectToApache.Load().(map[string]int)
 	if i, ok := v[r.Host]; ok {
-		r.Host = "localhost:" + strconv.Itoa(i)
+		r.Host = r.Host + ":" + strconv.Itoa(i)
 	}else{
 		log.Println("unknown host '" + r.Host + "'")
 		r.Host = "localhost:8080"
