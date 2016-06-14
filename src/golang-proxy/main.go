@@ -11,7 +11,6 @@ import (
 	"encoding/json"
 	"strconv"
 	"bytes"
-	"strings"
 )
 
 var redirectToApache atomic.Value
@@ -26,8 +25,8 @@ func configUpdater(){
 		} else {
 			value := make(map[string]int)
 
-			if !bytes.Equal(lastValue, value) {
-				lastValue = value
+			if !bytes.Equal(lastValue, b) {
+				lastValue = b
 				log.Println("reloaded config")
 			}
 
