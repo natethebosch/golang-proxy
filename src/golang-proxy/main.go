@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"bytes"
 	"path"
+	"strings"
 )
 
 var redirectToApache atomic.Value
@@ -44,10 +45,18 @@ func configUpdater(){
 
 func director(r *http.Request) {
 	v := redirectToApache.Load().(map[string]int)
-	if i, ok := v[r.Host]; ok {
-		r.Host = r.Host + ":" + strconv.Itoa(i)
+
+	var h string
+	if strings.HasPrefix(r.Host, "www.") {
+		h = r.Host[4:]
 	}else{
-		log.Println("unknown host '" + r.Host + "'")
+		h = r.Host
+	}
+
+	if i, ok := v[h]; ok {
+		r.Host = h + ":" + strconv.Itoa(i)
+	}else{
+		log.Println("unknown host '" + h + "'")
 		r.Host = "localhost:8080"
 	}
 
@@ -61,7 +70,6 @@ func main(){
 
 	proxy := httputil.NewSingleHostReverseProxy(&url.URL{
 		Scheme: "http",
-		Host:   "localhost:80",
 	})
 	proxy.Director = director
 	http.ListenAndServe(":80", proxy)
